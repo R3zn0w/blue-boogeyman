@@ -44,6 +44,13 @@ def isPotentialMatch(candidate: str, hints: str, guessedLetter: str) -> bool:
     return True
 
 
+def areCandidatesAlmostTheSame(candidates: list[str], positions: list[int], guess: str) -> bool:
+    for candidate_word in candidates:
+        if positions != [i for i, letter in enumerate(candidate_word) if letter == guess]:
+            return False
+    return True
+
+
 if __name__ == '__main__':
     inp = input("Word to encode: ")
     print(encodeWord(inp))

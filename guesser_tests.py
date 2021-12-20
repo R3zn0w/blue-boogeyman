@@ -6,7 +6,7 @@ import utils
 import json
 
 
-class Guesser_Testable:
+class Guesser_Proto_Testable:
     gloss: dict[str, list[str]]
 
     def __init__(self) -> None:
@@ -21,16 +21,14 @@ class Guesser_Testable:
         used_letters = []
         candidates = list(self.gloss[first_in])
         try_count = 0
-        # start_time = time.time()
         while(True):
-            # print(f'Current candidates: {candidates}')
-            # print(f'Current candidates left: {candidates.__len__()}')
-            # return answer if only one word left
+            if try_count > 15:
+                print(f'Critical error at word {word}')
+                break
+            elif try_count > 12:
+                print(f'Problems encountered at word {word}')
             if candidates.__len__() == 1:
-                # print(f'Word {candidates[0]} ended in {try_count} tries')
-                # print(f'This took barely {time.time() - start_time} seconds')
                 return try_count
-                # return candidates[0]
 
             # find the most popular letter
             letter_count = {0: 0}
@@ -42,22 +40,40 @@ class Guesser_Testable:
                         letter_count[letter] = letter_count[letter] + 1
                     else:
                         letter_count.update({letter: 1})
-            # print(letter_count)
 
             # zgaduj zgadula
             guess = utils.findMaxElementInDict(letter_count)
-            # print(f'My guess is: {guess}')
+
+            err_cnt = 0
+            while True:
+                positions = []
+                # nie random - pierwsze slowo (bez znaczenia)
+                for idx, candidate_word_letter in enumerate(candidates[0]):
+                    if candidate_word_letter == guess:
+                        positions.append(idx)
+
+                if positions.__len__() == 0:
+                    break
+
+                if not utils.areCandidatesAlmostTheSame(candidates, positions, guess):
+                    break
+
+                else:
+                    del letter_count[guess]
+                    used_letters.append(guess)
+                    guess = utils.findMaxElementInDict(letter_count)
+                err_cnt = err_cnt + 1
+
             used_letters.append(guess)
             try_count = try_count + 1
             serv_ans = utils.mockServerAnswer(word, guess)
-            # print(f'SERWER: {serv_ans}')
 
             candidates = [
                 x for x in candidates if utils.isPotentialMatch(x, serv_ans, guess)]
 
 
 def carryOnGuesser(pooledGloss: list[str]):
-    guessInstance = Guesser_Testable()
+    guessInstance = Guesser_Proto_Testable()
     localGloss = {0: 0}
     for testWord in pooledGloss:
         guessedTries = guessInstance.guessWord(testWord)
@@ -69,6 +85,7 @@ def carryOnGuesser(pooledGloss: list[str]):
 
 
 if __name__ == '__main__':
+    from colorama import init, Fore, Back, deinit
     # multithreaded benchmark for guessing algorithm
     with codecs.open("slowa_picked.txt", "r", "utf-8") as f:
         fullWordList = f.read().splitlines()
@@ -134,7 +151,7 @@ if __name__ == '__main__':
             else:
                 finalMap.update({item[0]: item[1]})
 
-    print("Number of words per guessing steps: ")
+    print(f'Number of words per guessing steps: ')
     # sort maps by keys
     for i in sorted(finalMap):
         print((i, finalMap[i]), end=" ")
