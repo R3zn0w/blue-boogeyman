@@ -6,6 +6,7 @@ with codecs.open("slowa_picked.txt", "r", "utf-8") as f:
     temp = f.read().splitlines()
     f.close()
 
+#TODO: rewrite those ugly tabs
 
 # create new dictionary with 5>= letter words
 # with codecs.open("slowa_picked.txt", "w", "utf-8") as f:
@@ -16,9 +17,13 @@ with codecs.open("slowa_picked.txt", "r", "utf-8") as f:
 
 
 # create dictionary that maps numeral representation into all possible words (e.g. "11111111": ["aaronowa", "aaronowe", ... ])
-tab1 = ["a", "c", "e", "m", "n", "o", "r", "s", "u", "w", "z", "x", "v"]
-tab2 = ["ą", "ę", "g", "j", "p", "y", "q"]
-tab3 = ["b", "ć", "d", "h", "k", "l", "ł", "ń", "ó", "ś", "t", "ź", "ż", "i"]
+# tab1 = ["a", "c", "e", "m", "n", "o", "r", "s", "u", "w", "z", "x", "v"]
+# tab2 = ["ą", "ę", "g", "j", "p", "y", "q"]
+# tab3 = ["b", "ć", "d", "h", "k", "l", "ł", "ń", "ó", "ś", "t", "ź", "ż", "i"]
+# tab4 = ["f"]
+tab1 = ['w', 'e', 'r', 'u', 'i', 'o', 'a', 's', 'z', 'x', 'c', 'v', 'n', 'm', 'ę', 'ó', 'ą', 'ś', 'ń', 'ć', 'ż', 'ź']
+tab2 = ['p', 'y', 'j', 'g', 'q']
+tab3 = ['t', 'l', 'b', 'd', 'h', 'k', 'ł']
 tab4 = ["f"]
 gloss = {"null": ["noll"]}
 for line in temp:
@@ -37,6 +42,6 @@ for line in temp:
     else:
         gloss.update({numbered: [line]})
 
-with open('dict.json', 'w') as fp:
+with open('dict_1.json', 'w') as fp:
     json.dump(gloss, fp)
     fp.close()

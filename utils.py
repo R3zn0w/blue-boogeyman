@@ -1,5 +1,5 @@
 
-def findMaxElementInDict(dictToSearch: dict[str, int]) -> int:
+def findMaxElementInDict(dictToSearch: dict[str, int]) -> str:
     """Given dictionary in form <str: int> find str with highest int value."""
     maxOccurences = max(list(dictToSearch.values()))
     return list(dictToSearch.keys())[list(dictToSearch.values()).index(maxOccurences)]

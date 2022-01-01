@@ -5,6 +5,7 @@ import multiprocessing as mp
 import utils
 import json
 
+#TODO: rewrite to include sequentional version
 
 class Guesser_Proto_Testable:
     gloss: dict[str, list[str]]

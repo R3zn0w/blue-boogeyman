@@ -129,4 +129,5 @@ dmypy.json
 .pyre/
 
 slowa*
-dict.json
+dict*.json
+servers.txt
