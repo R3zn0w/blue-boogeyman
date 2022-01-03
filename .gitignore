@@ -128,5 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-slowa*
-dict.json
+words*
+dict*.json
+servers.txt
