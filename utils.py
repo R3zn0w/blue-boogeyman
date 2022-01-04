@@ -39,6 +39,11 @@ def findMaxElementInDict(dictToSearch: dict[str, int]) -> str:
     maxOccurences = max(list(dictToSearch.values()))
     return list(dictToSearch.keys())[list(dictToSearch.values()).index(maxOccurences)]
 
+def findMaxElementsInDict(dictToSearch: dict[str, int]) -> list[str]:
+    """Given dictionary in form <str: int> find strings with highest int value."""
+    maxOccurences = max(list(dictToSearch.values()))
+    return [key for key, value in dictToSearch.items() if value == maxOccurences]
+
 def generateDictionaries(isNormalVersionForLogicallyThinkingHuman: bool) -> None:
     """Create dictionary from file "words_picked.txt" that maps numeral representation into all possible words (e.g. "11111111": ["aaronowa", "aaronowe", ... ])"""
     gloss: dict[str, list[str]] = {}
@@ -156,3 +161,17 @@ def averageGuessesFromGuessMap(guessMap: dict[int, int]) -> float:
         weighedSum = weighedSum + key*item
         wordsCount = wordsCount + item
     return weighedSum/wordsCount
+
+def calculateLetterScore(letter: str, word: str):
+    score: int = 0
+    for idx, word_letter in enumerate(word):
+        if letter == word_letter:
+            score = score + pow(2,idx)
+    return score
+
+def removeDuplicates(listToRemoveFrom: list[str]):
+    listToReturn: list[str] = []
+    for item in listToRemoveFrom:
+        if item not in listToReturn:
+            listToReturn.append(item)
+    return listToReturn

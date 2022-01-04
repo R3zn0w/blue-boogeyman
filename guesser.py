@@ -20,7 +20,7 @@ class Guesser:
             self.gloss = json.load(fp)
             fp.close()
 
-    def guessNext(self, initial: str = None) -> tuple[str, str]:
+    def guessNext(self, initial: str = None) -> tuple[str, str] | tuple[str, str, int]:
         """Perform next guess using internal candidates list, if executed with optional parameter 'initial' starts guessing new word, effectively resetting progress.\n
         Returns tuple (operation, guess), where operation may be + or = and guess may be single letter(+) or whole word(=) according to operation."""
         if initial != None:
@@ -29,52 +29,63 @@ class Guesser:
             self.candidates = list(self.gloss[initial])
         print(f'Current candidates: {self.candidates}')
         print(f'Current candidates left: {self.candidates.__len__()}')
-        # wywal jesli jedno haslo
-        if self.candidates.__len__() == 1:
-            print(f'Word {self.candidates[0]} found in {self.try_count} tries')
-            return ('=', self.candidates[0])
 
-        # znajdz najpopularniejsza literke w zestawie
-        letter_count: dict[int,int] = {}
-        for candidate_word in self.candidates:
-            for letter in candidate_word:
-                if letter in self.used_letters:
+        if self.candidates.__len__() <= 2:
+            self.try_count = self.try_count + 1
+            return ('=', self.removeLastCandidate(), self.try_count)
+
+        letter_scores: dict[str, list[int]] = {}
+        letter_popularity: dict[int,int] = {}
+        for candidate in self.candidates:
+            candidate_used_letters: list[str] = list(self.used_letters)
+            for letter in candidate:
+                if letter not in self.used_letters:
+                    if letter in letter_popularity:
+                        letter_popularity[letter] = letter_popularity[letter] + 1
+                    else:
+                        letter_popularity.update({letter: 1})
+
+                if letter in candidate_used_letters:
                     continue
-                elif letter in letter_count:
-                    letter_count[letter] = letter_count[letter] + 1
+
+                score = utils.calculateLetterScore(letter, candidate)
+
+                candidate_used_letters.append(letter)
+
+                if score == 0:
+                    continue
+                if letter in letter_scores:
+                    letter_scores[letter].append(score)
                 else:
-                    letter_count.update({letter: 1})
-        print(f'Letter count: {letter_count}')
+                    letter_scores.update({letter: [score]})
+            # print(f'Letter scores: {letter_scores.items()}')
+
+        letter_count: dict[str, int] = {}
+        for key,value in letter_scores.items():
+            trimmed = utils.removeDuplicates(value)
+            # print(f'Trimmed values: {trimmed} for {key}')
+            if value.__len__() == self.candidates.__len__() and trimmed.__len__() == 1:
+                continue
+ 
+            # print(f'Letter {key} score is {trimmed.__len__()}')
+            letter_count.update({key: trimmed.__len__()})
 
         # zgaduj zgadula
-        guess = utils.findMaxElementInDict(letter_count)
+        guess_candidates: list[str] = utils.findMaxElementsInDict(letter_count)
+        print(f'Guess candidates: {guess_candidates}')
+        if guess_candidates.__len__() == 1:
+            guess = guess_candidates[0]
+            # print(f'Single best candidate: {guess}')
 
-        while True:
-            positions = []
-            # nie random - pierwsze slowo (bez znaczenia)
-            for idx, candidate_word_letter in enumerate(self.candidates[0]):
-                if candidate_word_letter == guess:
-                    positions.append(idx)
+        else:
+            while True:
+                temp = utils.findMaxElementInDict(letter_popularity)
+                if temp in guess_candidates:
+                    guess = temp
+                    break
+                else:
+                    del letter_popularity[temp]
 
-            if positions.__len__() == 0:
-                print(consts.success +
-                        f'Candidate {guess} optimal!')
-                break
-
-            if not utils.areCandidatesAlmostTheSame(self.candidates, positions, guess):
-                print(consts.success +
-                        f'Candidate {guess} optimal!')
-                break
-
-            else:
-                utils.printDivider()
-                del letter_count[guess]
-                self.used_letters.append(guess)
-                print(consts.log +
-                        f'Candidate {guess} inoptimal, removing!')
-                print(consts.log +
-                        f'New letter count: {letter_count}')
-                guess = utils.findMaxElementInDict(letter_count)
 
         print(f'My guess is: {guess}')
         utils.printDivider()
@@ -82,7 +93,8 @@ class Guesser:
         self.try_count = self.try_count + 1
         return ("+", guess)
 
-
+    def removeLastCandidate(self):
+        return self.candidates.pop()
 
     def updateCandidates(self,serv_ans: str, guess: str):
         """Updates potential matching words based on performed guess and server answer"""
@@ -101,6 +113,10 @@ if __name__ == '__main__':
         while True:
             print(guess)
             if guess[0] == '=':
+                if guess[1] != wordToGuess:
+                    guess = guessInstance.guessNext()
+                    continue
+                print(consts.win + f'Word {wordToGuess} found in {guess[2]} tries')
                 break
             ans = utils.mockServerAnswer(wordToGuess, guess[1])
             print(ans)

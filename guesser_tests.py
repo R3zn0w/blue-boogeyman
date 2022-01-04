@@ -23,80 +23,103 @@ class Guesser_Testable:
 
     def guessNext(self, initial: str = None) -> tuple[str, str] | tuple[str, str, int]:
         """Perform next guess using internal candidates list, if executed with optional parameter 'initial' starts guessing new word, effectively resetting progress.\n
-        Returns tuple (operation, guess), where operation may be + or = and guess may be single letter(+) or whole word(=) according to operation."""
+        Returns tuple (operation, guess), where operation may be + or = and guess may be single letter(+) or whole word(=)."""
         if initial != None: #reset state if guessing again
             self.try_count = 0
             self.used_letters = []
             self.candidates = list(self.gloss[initial])
 
-        # wywal jesli jedno haslo
-        if self.candidates.__len__() == 1:
+        if self.candidates.__len__() <= 2:
             self.try_count = self.try_count + 1
-            return ('=', self.candidates[0], self.try_count)
+            return ('=', self.removeLastCandidate(), self.try_count)
 
-        # znajdz najpopularniejsza literke w zestawie
-        letter_count: dict[int,int] = {}
-        for candidate_word in self.candidates:
-            for letter in candidate_word:
-                if letter in self.used_letters:
+        letter_scores: dict[str, list[int]] = {}
+        letter_popularity: dict[int,int] = {}
+        for candidate in self.candidates:
+            candidate_used_letters: list[str] = list(self.used_letters)
+            for letter in candidate:
+                if letter not in self.used_letters:
+                    if letter in letter_popularity:
+                        letter_popularity[letter] = letter_popularity[letter] + 1
+                    else:
+                        letter_popularity.update({letter: 1})
+
+                if letter in candidate_used_letters:
                     continue
-                elif letter in letter_count:
-                    letter_count[letter] = letter_count[letter] + 1
+
+                score = utils.calculateLetterScore(letter, candidate)
+
+                candidate_used_letters.append(letter)
+
+                if score == 0:
+                    continue
+                if letter in letter_scores:
+                    letter_scores[letter].append(score)
                 else:
-                    letter_count.update({letter: 1})
+                    letter_scores.update({letter: [score]})
 
-        # zgaduj zgadula
-        guess = utils.findMaxElementInDict(letter_count)
+        letter_count: dict[str, int] = {}
+        for key,value in letter_scores.items():
+            trimmed = utils.removeDuplicates(value)
+            if value.__len__() == self.candidates.__len__() and trimmed.__len__() == 1:
+                continue
+            letter_count.update({key: trimmed.__len__()})
 
-        while True:
-            positions = []
-            # nie random - pierwsze slowo (bez znaczenia)
-            for idx, candidate_word_letter in enumerate(self.candidates[0]):
-                if candidate_word_letter == guess:
-                    positions.append(idx)
+        guess_candidates: list[str] = utils.findMaxElementsInDict(letter_count)
+        if guess_candidates.__len__() == 1:
+            guess = guess_candidates[0]
 
-            if positions.__len__() == 0:
-                break
-
-            if not utils.areCandidatesAlmostTheSame(self.candidates, positions, guess):
-                break
-
-            else:
-                del letter_count[guess]
-                self.used_letters.append(guess)
-                guess = utils.findMaxElementInDict(letter_count)
+        else:
+            while True:
+                temp = utils.findMaxElementInDict(letter_popularity)
+                if temp in guess_candidates:
+                    guess = temp
+                    break
+                else:
+                    del letter_popularity[temp]
 
         self.used_letters.append(guess)
         self.try_count = self.try_count + 1
         return ('+', guess)
 
-
+    def removeLastCandidate(self):
+        return self.candidates.pop()
 
     def updateCandidates(self,serv_ans: str, guess: str):
         """Updates potential matching words based on performed guess and server answer"""
         self.candidates = [x for x in self.candidates if utils.isPotentialMatch(x, serv_ans, guess)]
-
+ 
 
 def carryOnGuesser(pooledGloss: list[str]) -> dict[int,int]:
     guessInstance = Guesser_Testable(2)
     tryGloss: dict[int, int] = {}
     for testWord in pooledGloss:
-        encoded = utils.encodeWord(testWord, True)
-        guess = guessInstance.guessNext(encoded)
-        while True:
-            if guess[0] == '=':
-                break
-            guessInstance.updateCandidates(utils.mockServerAnswer(testWord, guess[1]), guess[1])
-            guess = guessInstance.guessNext()
-        if guess[1] != testWord:
-            print(consts.error + f'Word {testWord} not guessed!')
+        try:
+            encoded = utils.encodeWord(testWord, True)
+            guess = guessInstance.guessNext(encoded)
+            while True:
+                if guess[0] == '=':
+                    if guess[1] != testWord:
+                        guess = guessInstance.guessNext()
+                        continue
+                    break
+                guessInstance.updateCandidates(utils.mockServerAnswer(testWord, guess[1]), guess[1])
+                guess = guessInstance.guessNext()
 
-        guessedTries = guess[2]
+            if guess[1] != testWord:
+                print(consts.error + f'Word {testWord} not guessed!')
 
-        if guessedTries in tryGloss:
-            tryGloss[guessedTries] = tryGloss[guessedTries] + 1
-        else:
-            tryGloss.update({guessedTries: 1})
+            guessedTries = guess[2]
+
+            if guessedTries >= 14:
+                print(f'Problems with solving word: {testWord}')
+
+            if guessedTries in tryGloss:
+                tryGloss[guessedTries] = tryGloss[guessedTries] + 1
+            else:
+                tryGloss.update({guessedTries: 1})
+        except:
+            print(f'Error encountered at word: {testWord}!')
     return tryGloss
 
 

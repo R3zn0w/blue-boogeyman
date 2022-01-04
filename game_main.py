@@ -37,7 +37,7 @@ if __name__ == "__main__":
                 continue
             
             elif received == '=' and guess[0] == '=':
-                print(consts.win + f'Word {guess[1]} guessed 😘')
+                print(consts.win + f'Word {guess[1]} guessed in {guess[2]} tries')
                 points=serverConnection.receive()
                 print(f'Got {points} points 😂')
                 break
@@ -46,6 +46,9 @@ if __name__ == "__main__":
                 print(consts.success + f'Letter {guess[1]} guessed 😎')
                 serv_letters = serverConnection.receive()
                 guesserInstance.updateCandidates(serv_letters,guess[1])
+
+            elif received == '!' and guess[0] == '=':
+                pass
 
             elif received == '!' and guess[0] == '+':
                 print(consts.log + f'Letter {guess[1]} not present')
