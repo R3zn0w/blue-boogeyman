@@ -14,13 +14,16 @@ class Connectivity:
         except:
             print(consts.error + f'Error at initialization')
     
-    def authenticate(self,login: str, password: str) -> int:
+    def authenticate(self,login: str, password: str, needsSpecialTreatment: bool = False) -> int:
         """Try to authenticate with gameserver, returns 0 on fail or number of alphabet used by server on success (1 or 2)"""
-        login = login + '\n' #compatibility with jooorczyk
-        password = password + '\n' #compatibility with jooorczyk
+        login = login + '\n' #compatibility with jo-o-orczyk
+        password = password + '\n' #compatibility with jo-o-orczyk
         try:
-            self.sock.send(login.encode())
-            self.sock.send(password.encode())
+            if needsSpecialTreatment: #patka ;---)
+                self.sock.sendall(f'{login}{password}\0'.encode())
+            else:
+                self.sock.send(login.encode())
+                self.sock.send(password.encode())
             resp = self.receive()
             if resp[0] == '-':
                 print(consts.error + f'Authentication failed!')
