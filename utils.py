@@ -4,13 +4,31 @@ from os.path import exists
 from shutil import get_terminal_size
 import json
 
-def areCandidatesAlmostTheSame(candidates: list[str], positions: list[int], guess: str) -> bool:
-    """Leftover for testing purposes"""
-    #TODO: do śmieci po testach
-    for candidate_word in candidates:
-        if positions != [i for i, letter in enumerate(candidate_word) if letter == guess]:
-            return False
-    return True
+def averageGuessesFromGuessMap(guessMap: dict[int, int]) -> float:
+    """Return average guesses from map using weighed sum in form <guesses: words>,
+    e.g <1:20, 3:5> returns 1.75"""
+    weighedSum = 0
+    wordsCount = 0
+    for key,item in guessMap.items():
+        weighedSum = weighedSum + key*item
+        wordsCount = wordsCount + item
+    return weighedSum/wordsCount
+
+def calculateLetterScore(letter: str, word: str):
+    """Calculate score for letter in given word. Score is defined as
+    value of little-endian binary representation of word, where ones
+    are letters for which score is calculated and rest is 0.\n
+    For example: Given word 'tabaluga' and calculating score for letter
+    'a'. Binary representation of such word will be '01010001' and its
+    score will be 138.\n
+    Scores are used to differentiate between words that have letters
+    in same places and optimize calculating optimal guess based on amount
+    of different 'layouts' available in given step."""
+    score: int = 0
+    for idx, word_letter in enumerate(word):
+        if letter == word_letter:
+            score = score + pow(2,idx)
+    return score
 
 def encodeWord(word: str, isNormalVersionForLogicallyThinkingHuman: bool) -> str:
     """Encode single word into its numerical representation in given system (e.g. "koko" -> "3131")"""
@@ -138,6 +156,7 @@ def pickWords(lowerLimit: int = 0, upperLimit: int = 420) -> None:
         f.close()
 
 def printDivider(char: str = '-'):
+    """Prints divider using given char, '-' by default"""
     print(char*int(get_terminal_size((40,40))[0]/2))
 
 def provideConnectionDetails() -> list[str]:
@@ -154,22 +173,8 @@ def provideConnectionDetails() -> list[str]:
             f.close()
     return [ip,port,login,password]
 
-def averageGuessesFromGuessMap(guessMap: dict[int, int]) -> float:
-    weighedSum = 0
-    wordsCount = 0
-    for key,item in guessMap.items():
-        weighedSum = weighedSum + key*item
-        wordsCount = wordsCount + item
-    return weighedSum/wordsCount
-
-def calculateLetterScore(letter: str, word: str):
-    score: int = 0
-    for idx, word_letter in enumerate(word):
-        if letter == word_letter:
-            score = score + pow(2,idx)
-    return score
-
 def removeDuplicates(listToRemoveFrom: list[str]):
+    """Given list, returns list without duplicates"""
     listToReturn: list[str] = []
     for item in listToRemoveFrom:
         if item not in listToReturn:

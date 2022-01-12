@@ -22,12 +22,14 @@ class Guesser:
 
     def guessNext(self, initial: str = None) -> tuple[str, str] | tuple[str, str, int]:
         """Perform next guess using internal candidates list, if executed with optional parameter 'initial' starts guessing new word, effectively resetting progress.\n
-        Returns tuple (operation, guess), where operation may be + or = and guess may be single letter(+) or whole word(=) according to operation."""
+        Returns tuple (operation, guess), where operation may be + or = and guess may be single letter(+) or whole word(=) according to operation. \n
+        Calling guessNext with optional parameter initial= results in clearing internal guess state and starts guessing new word given in initial="""
         if initial != None:
             self.try_count = 0
             self.used_letters = []
             self.candidates = list(self.gloss[initial])
-        print(f'Current candidates: {self.candidates}')
+        if self.candidates.__len__() <= 10:
+            print(f'Current candidates: {self.candidates}')
         print(f'Current candidates left: {self.candidates.__len__()}')
 
         if self.candidates.__len__() <= 2:
@@ -94,6 +96,7 @@ class Guesser:
         return ("+", guess)
 
     def removeLastCandidate(self):
+        """Removes last candidate from list"""
         return self.candidates.pop()
 
     def updateCandidates(self,serv_ans: str, guess: str):
@@ -102,6 +105,7 @@ class Guesser:
 
 
 if __name__ == '__main__':
+    #offline test for single words, type 'exit' to, well... exit
     init(autoreset=True)
     guessInstance = Guesser(2) 
     while True:

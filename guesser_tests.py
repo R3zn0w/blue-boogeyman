@@ -83,6 +83,7 @@ class Guesser_Testable:
         return ('+', guess)
 
     def removeLastCandidate(self):
+        """Removes last candidate from list"""
         return self.candidates.pop()
 
     def updateCandidates(self,serv_ans: str, guess: str):
