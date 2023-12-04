@@ -1,7 +1,7 @@
 
 # blue-boogeyman
 
-  
+Hangman client for Uni course. Designed to be somewhat fast and guess words in fewest possible moves.
 
 ## Requirements
 
@@ -44,7 +44,3 @@ Will allow to manually input words to guess and observe results, for more loggin
 Benchmark using guesser_tests.py (will put 100% stress on your CPU, might take a lot of time).
 
 For benchmarking, first run game_main and complete first config
-
-  
-
-### Proper readme is still WIP
